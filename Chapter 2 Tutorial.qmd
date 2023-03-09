@@ -1,0 +1,86 @@
+---
+title: "Chapter 2 Tutorial"
+author: "Lucas Rubim"
+format: html
+---
+
+#### Tutorial Question: Canada is a parliamentary democracy with 338 seats in the House of Commons, which is the lower house and that from which government is formed. There are two major parties – “Liberal” and “Conservative” – three minor parties – “Bloc Québécois”, “New Democratic”, and “Green” – and many smaller parties and independents. In this example we will create a graph of the number of seats that each party won in the 2021 Federal Election.
+
+
+## Quarto
+
+# Purpose: Read in data from the Canadian Election and make a graph of the number of seats each party won.
+
+install.packages("tidyverse") # once per computer
+
+# Load tidyverse & janitor
+
+library(tidyverse)
+
+library(janitor) 
+
+#### Read in the data ####
+raw_elections_data <-
+  read_csv(
+    file = 
+      "table_tableau11.csv",
+    show_col_types = FALSE
+  )
+
+
+# Clean up names
+
+cleaned_data <-
+  clean_names(raw_elections_data)
+  
+cleaned_data <-
+  cleaned_data |>
+# Select only certain columns
+  select(
+    electoral_district_name_nom_de_circonscription,
+    elected_candidate_candidat_elu
+    )
+
+# Have a look at the first six rows
+head(cleaned_data)
+
+#renaming into english only columns
+
+cleaned_data_english <-
+  cleaned_data |>
+  rename(
+     electoral_district = electoral_district_name_nom_de_circonscription,
+     elected_candidate = elected_candidate_candidat_elu
+  )
+
+head(cleaned_data_english)
+
+
+cleaned_elections_data <-
+  cleaned_data_english |>
+# Separate the column into two based on the slash
+  separate(
+    col = elected_candidate,
+    into = c("Other", "party"),
+    sep = "/"
+  ) |>
+  # Remove the "Other" column
+  select(-Other)
+  
+#Renaming party names from french to english - Having trouble renaming party names inside the column from French to English (I think this function only renames columns)
+
+cleaned_elections_data <-
+  cleaned_elections_data |>
+  rename(
+    Libéral = Liberal
+)
+
+head(cleaned_elections_data)
+
+#Plot the graph  
+  
+cleaned_elections_data |>
+  ggplot(aes(x = party)) + # aes abbreviates "aesthetics" 
+  geom_bar()
+  
+  
