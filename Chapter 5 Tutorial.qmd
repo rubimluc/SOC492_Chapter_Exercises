@@ -1,0 +1,73 @@
+---
+title: "Chapter 5 Tutorial"
+author: "Lucas"
+format: html
+---
+
+## Quarto
+
+---
+title: "Chapter 5_Tutorial"
+author: "Lucas Rubim"
+format: html
+---
+usethis::create_github_token
+
+install.packages("gitcreds")
+gitcreds::gitcreds_set()
+
+#### Task: Create a US map of violent crime (all types) per state in mainland US.
+
+# I will install packages required and install relevant libraries. 
+
+install.packages("ggplot2")
+install.packages("tidyverse")
+install.packages("mapdata")
+install.packages("dplyr")
+install.packages("coordmap")
+install.packages("ggmap")
+install.packages("maps")
+
+library(ggmap)
+library(maps)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(mapdata)
+
+
+# Read csv file of crime data by state
+uscrime <- read.csv("state_crime.csv") 
+
+
+# Fix data. Will begin by removing all data from other years and keeping only data for 2019. I will also remove all columns except for violent crimes - which is what is relevant for this exercise
+
+
+uscrime_data <- uscrime %>% 
+      filter(Year =='2019')
+      
+uscrime_final <-data.frame(uscrime_data$State,uscrime_data$Data.Rates.Violent.All)
+
+#Rename columns to have appropriate name
+
+uscrime_final_data <- uscrime_final %>% rename(State = uscrime_data.State)
+
+uscrime_final_data <- uscrime_final %>% rename(uscrime_data.Data.Violent.Rates.All = Crime_Rate)
+
+#Add map and review if map is accurate
+usmap <- map_data('state')
+ggplot(usmap, aes(x = long, y = lat, group = group, fill = region)) + geom_polygon(color = 'blue') + coord_map('polyconic') + guides(fill = F)
+
+#Need to make lower case in crime data in order to merge with map data since states in map data are lower case. Finally, I will merge crime data and map data (long and lat data)
+
+uscrime_final_data$State <-tolower(uscrime_final_data$State)
+
+# Merge Data
+final_data <- merge(uscrime_final_data,usmap, 
+      by.x = 'State',
+      by.y = 'region')
+      
+# Create Map
+ggplot(final_data, aes(x = long, y = lat, group = group,fill = Crime_Rate)) + geom_polygon() + coord_map('polyconic') + scale_fill_gradient2()
+
+#The final map appears to have violent crime rate pretty dispersed dispersed throughout the mainland US. States with lowest violent crime rate appear to be eastern states such as Vermont, and Maine, both of which have smaller populations. Logically, states with higher population appear to have higher crime rates, such as California, Texas and New York. Interestingly, New Mexico appears to be an outlier, with a smaller population in comparison to other bigger and more populous states such as Texas and California, but with the highest violent crime rate overall. 
